@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+._*
+
+# 外部资源 PDF —— 体积大（约 120MB）且为二进制，不入版本控制
+# 对应的文本版在 外部资源/转录md/ 下
+外部资源/*.pdf
+
+# Obsidian 本地界面状态
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
