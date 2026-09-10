@@ -13,17 +13,21 @@ WORK=$(mktemp -d /private/tmp/ruankao-book.XXXXXX)
 NAME="软考讲义合订本（$(printf %02d "$FROM")-$(printf %02d "$TO")）"
 PDFBIN="$HOME/.claude/skills/gstack/make-pdf/dist/pdf"
 
-echo "[1/4] 合并 markdown"
+echo "[1/5] 合并 markdown"
 python3 "$ROOT/工具/生成合订本.py" "$FROM" "$TO" "$WORK/book.md"
 
 # PDF：A4，页边距 0.45in 是为了容下最宽的 ASCII 时空图（约 100 显示列）
-echo "[2/4] 生成 PDF"
+echo "[2/5] 生成 PDF"
 "$PDFBIN" generate "$WORK/book.md" "$WORK/$NAME.pdf" \
   --cover --toc --page-size a4 --margins 0.45in --no-confidential \
   --title "$NAME" --author "软考·软件设计师（中级）备考" --date "$(date +%F)"
 
+# make-pdf 没有控制书签深度的参数，生成后再裁：713 条砍到 66 条，与 EPUB 目录对齐
+echo "[3/5] 精简 PDF 书签"
+python3 "$ROOT/工具/精简PDF书签.py" "$WORK/$NAME.pdf"
+
 # EPUB 封面取 PDF 首页；内部文件名必须全 ASCII，带中文的内部路径会让部分阅读器解包失败
-echo "[3/4] 生成封面"
+echo "[4/5] 生成封面"
 mkdir -p "$WORK/cv"
 qlmanage -t -s 1400 -o "$WORK/cv" "$WORK/$NAME.pdf" >/dev/null 2>&1
 cp "$WORK/cv/"*.png "$WORK/cover.png"
@@ -57,7 +61,7 @@ date: $(date +%F)
 YAML
 
 # 目录只到一级（讲义标题）：开到 3 级时 22 篇就有 292 条，微信读书里堆成一面墙
-echo "[4/4] 生成 EPUB"
+echo "[5/5] 生成 EPUB"
 pandoc "$WORK/meta.yaml" "$WORK/book.md" \
   -f markdown+pipe_tables+backtick_code_blocks -t epub3 \
   --toc --toc-depth=1 --split-level=1 \
