@@ -16,7 +16,8 @@ python3 "$根/工具/生成合订本.py" "$起" "$止" "$工作/book.md"
   --title "$名" --author "软考·软件设计师（中级）备考" --date "$(date +%F)"
 
 # EPUB：微信读书等阅读器用。封面取 PDF 首页；内部文件名必须全 ASCII，
-# 带中文的内部路径会让部分阅读器解包失败
+# 带中文的内部路径会让部分阅读器解包失败。
+# 目录只到一级（讲义标题，25 条）：开到 3 级是 292 条，微信读书里堆成一面墙
 mkdir -p "$工作/cv" && qlmanage -t -s 1400 -o "$工作/cv" "$工作/$名.pdf" >/dev/null 2>&1
 cp "$工作/cv/"*.png "$工作/cover.png"
 
@@ -50,7 +51,7 @@ YAML
 
 pandoc "$工作/meta.yaml" "$工作/book.md" \
   -f markdown+pipe_tables+backtick_code_blocks -t epub3 \
-  --toc --toc-depth=3 --split-level=1 \
+  --toc --toc-depth=1 --split-level=1 \
   --css "$工作/epub.css" --epub-cover-image "$工作/cover.png" \
   --resource-path="$工作:$根" \
   -o "$工作/$名.epub"
