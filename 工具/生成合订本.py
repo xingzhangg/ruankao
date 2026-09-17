@@ -4,7 +4,8 @@
 用法：
     python3 工具/生成合订本.py 1 53 [输出.md]
 
-按编号顺序拼接 `讲义/NN-*.md`，板块切换处插一页分隔页。
+按编号顺序拼接 `讲义/NN-*.md`，板块切换处插一页分隔页；
+`题库/NN-*.md`（v2 骨架拆出去的考点与练习）有几篇收几篇，放在最后一部分。
 每篇的「知识点范围」头部行是内部索引，对读者是噪音，删掉；
 「真题依据｜有无计算、是否阶段B」那行保留。正文一字不动。
 
@@ -18,6 +19,7 @@ import io, re, sys, os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LEC = os.path.join(ROOT, '讲义')
+TIKU = os.path.join(ROOT, '题库')      # 拆出去的「考试怎么考」+「练习」，逐篇转，可能只有一部分
 
 _数 = '零一二三四五六七八九十'
 
@@ -31,9 +33,11 @@ def 中文序数(n):
     return _数[n // 10] + '十' + (_数[n % 10] if n % 10 else '')
 
 
-def 收集(起, 止):
+def 收集(起, 止, 目录=LEC):
     出 = []
-    for f in sorted(os.listdir(LEC)):
+    if not os.path.isdir(目录):
+        return 出
+    for f in sorted(os.listdir(目录)):
         if not re.match(r'^\d{2}-', f) or f.startswith('00-'):
             continue
         base = re.sub(r'（√）\.md$|\.md$', '', f)
@@ -43,7 +47,7 @@ def 收集(起, 止):
             continue
         板块 = re.sub(r'^下午题\d$', '下午题', 段[1]) if len(段) > 1 else '其他'
         课题 = 段[2] if len(段) > 2 else 段[1]      # 两段形状：板块即课题
-        出.append((n, 板块, 课题, os.path.join(LEC, f)))
+        出.append((n, 板块, 课题, os.path.join(目录, f)))
     return 出
 
 
@@ -79,6 +83,15 @@ def 构建(起, 止, 目标):
                       f'本部分收讲义 {同[0][0]:02d}–{同[-1][0]:02d}，共 {len(同)} 课。\n')
             上个 = 板块
         块.append(正文(路径))
+    # 题库：v2 骨架拆出去的考点与练习，作为最后一部分收进来；没拆的课题目仍在上面各篇正文里
+    题 = 收集(起, 止, TIKU)
+    if 题:
+        板块号 += 1
+        块.append(f'# 第{中文序数(板块号)}部分 · 题库\n\n'
+                  f'本部分收已拆出题库的 {len(题)} 课（{"、".join(f"{x[0]:02d}" for x in 题)}）的「考试怎么考」与「练习」；'
+                  f'没列到的课，题目仍在前面各篇正文里。\n')
+        for n, 板块, 课题, 路径 in 题:
+            块.append(正文(路径))
     md = '\n\n'.join(块) + '\n'
     io.open(目标, 'w', encoding='utf-8').write(md)
     return 篇, 板块号, len(md)
