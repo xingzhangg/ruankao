@@ -247,8 +247,6 @@ REVOKE UPDATE ON TABLE S FROM U1 CASCADE;    -- 连同 U1 转授出去的一并�
 
 其余认名即可：`ALL PRIVILEGES` 与 `PUBLIC` 常同句出现（`GRANT ALL PRIVILEGES ON TABLE S TO PUBLIC;`＝把全部权限授给全体用户）；建表约束 `NOT NULL`、`UNIQUE` 认字面意思即可，卷面考的是它们属 DDL。
 
-题目与考法见题库 33
-
 ## 速记
 
 - σ 挑行＝WHERE，π 挑列＝SELECT；**σ 下标是条件、π 下标是列名，先 σ 后 π**；π 自动去重＝`SELECT DISTINCT`
